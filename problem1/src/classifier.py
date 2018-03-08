@@ -5,9 +5,9 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.ensemble import RandomForestClassifier
 
+
 def run(train_features, train_labels, test_features, type='knn', k_neighbors=3):
     clf = None
-
     if type == 'knn':
         clf = KNeighborsClassifier(k_neighbors)
 

@@ -113,12 +113,32 @@ def build_vocabulary():
     return list(voc)
 
 
+def classify_test_dat():
+    pass
+
+
 if __name__ == '__main__':
     env = 'prod'
 
-    file_name = '../train.dat'
+    train_file_name = '../train.dat'
+    test_file_name = '../test.dat'
 
-    docs, class_labels = get_docs_and_class_labels(file_name)
+    train_docs, train_labels = get_docs_and_class_labels(train_file_name)
+    test_docs, _ = get_docs_and_class_labels(test_file_name, is_train=False)
 
-    accuracy = k_fold_cross_validation(docs, class_labels, type_of_classifier='rf', n_splits=10)
-    print 'average accuracy = ', accuracy
+    print 'train:', len(train_docs)
+    print 'test:', len(test_docs)
+    # accuracy = k_fold_cross_validation(docs, class_labels, type_of_classifier='knn', n_splits=10)
+    # print 'average accuracy = ', accuracy
+
+    tf_idf_train, X_train_counts, train_vocabulary = preprocess.get_tf_idf_training(train_docs)
+    tf_idf_test = preprocess.get_tf_idf_testing(X_train_counts, train_vocabulary, test_docs)
+
+    type_of_classifier = 'knn'
+    predict_labels = classifier.run(tf_idf_train, train_labels, tf_idf_test, type_of_classifier, k_neighbors=47)
+    print len(predict_labels)
+
+    output_file_name = 'format.dat'
+    with open(output_file_name, 'w') as raw_text:
+        for i in predict_labels:
+            raw_text.write(predict_labels + '\n')
