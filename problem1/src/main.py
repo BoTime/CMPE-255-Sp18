@@ -7,8 +7,8 @@ import numpy as np
 import sys
 
 
-def k_fold_cross_validation(docs, class_labels, type_of_classifier='knn', n_splits=2):
-
+def k_fold_cross_validation(docs, class_labels, type_of_classifier='knn', n_splits=2, k_neighbors=3):
+    print 'k_neighbors:', k_neighbors
     vocabulary = build_vocabulary()
 
     # n-fold cross validation
@@ -28,8 +28,8 @@ def k_fold_cross_validation(docs, class_labels, type_of_classifier='knn', n_spli
         for i in test_index:
             test.append(docs[i])
 
-        tf_idf_train, X_train_counts, train_vocabulary = preprocess.get_tf_idf_training(train)
-        tf_idf_test = preprocess.get_tf_idf_testing(X_train_counts, train_vocabulary, test)
+        tf_idf_train, train_vocabulary = preprocess.get_tf_idf_training(train)
+        tf_idf_test = preprocess.get_tf_idf_testing(train_vocabulary, test)
 
         train_labels = []
         for i in train_index:
@@ -39,7 +39,7 @@ def k_fold_cross_validation(docs, class_labels, type_of_classifier='knn', n_spli
         for i in test_index:
             test_labels.append(class_labels[i])
 
-        predict_labels = classifier.run(tf_idf_train, train_labels, tf_idf_test, type_of_classifier, k_neighbors=47)
+        predict_labels = classifier.run(tf_idf_train, train_labels, tf_idf_test, type_of_classifier, k_neighbors=k_neighbors)
         accuracy = calculate_accuracy(test_labels, predict_labels)
         m_accuracy += accuracy
 
@@ -129,18 +129,38 @@ if __name__ == '__main__':
     train_docs, train_labels = get_docs_and_class_labels(train_file_name)
     test_docs, _ = get_docs_and_class_labels(test_file_name, is_train=False)
 
-    if sys.argv[1] == 'train':
+    k_neighbors = 31
+    type = 'train'
+    type_of_classifier = 'knn'
+
+    if len(sys.argv) >= 2:
+        type_of_classifier = sys.argv[2]
+        k_neighbors = int(sys.argv[3])
+
+    if type == 'train':
         print('training......')
-        accuracy = k_fold_cross_validation(train_docs, train_labels, type_of_classifier='knn', n_splits=10)
+        accuracy = k_fold_cross_validation(
+            train_docs,
+            train_labels,
+            type_of_classifier=type_of_classifier,
+            n_splits=10,
+            k_neighbors=k_neighbors
+        )
         print 'average accuracy = ', accuracy
 
-    if sys.argv[1] == 'test':
+    if type == 'test':
         print('testing......')
         tf_idf_train, X_train_counts, train_vocabulary = preprocess.get_tf_idf_training(train_docs)
         tf_idf_test = preprocess.get_tf_idf_testing(X_train_counts, train_vocabulary, test_docs)
 
         type_of_classifier = 'knn'
-        predict_labels = classifier.run(tf_idf_train, train_labels, tf_idf_test, type_of_classifier, k_neighbors=47)
+        predict_labels = classifier.run(
+            tf_idf_train,
+            train_labels,
+            tf_idf_test,
+            type_of_classifier,
+            k_neighbors=k_neighbors
+        )
         print len(predict_labels)
 
         output_file_name = 'format.dat'
