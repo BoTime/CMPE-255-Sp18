@@ -14,6 +14,7 @@ def get_tf_idf_training(training_set, vocabulary=None):
     vectorizer = CountVectorizer(max_features=max_features, binary=binary, vocabulary=vocabulary)  # not filter English stop words
     X_train_counts = vectorizer.fit_transform(training_set)
 
+    print vectorizer.stop_words
     # tf-idf weighting
     tf_idf_transformer = TfidfTransformer(smooth_idf=False)
     tfidf = tf_idf_transformer.fit_transform(X_train_counts)

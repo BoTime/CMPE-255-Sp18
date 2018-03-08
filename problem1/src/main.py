@@ -120,5 +120,5 @@ if __name__ == '__main__':
 
     docs, class_labels = get_docs_and_class_labels(file_name)
 
-    accuracy = k_fold_cross_validation(docs, class_labels, type_of_classifier='knn', n_splits=10)
+    accuracy = k_fold_cross_validation(docs, class_labels, type_of_classifier='rf', n_splits=10)
     print 'average accuracy = ', accuracy
