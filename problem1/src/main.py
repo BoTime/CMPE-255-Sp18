@@ -5,6 +5,10 @@ import classifier
 import preprocess
 import numpy as np
 import sys
+from imblearn.over_sampling import RandomOverSampler
+from imblearn.combine import SMOTEENN
+from imblearn.under_sampling import AllKNN
+from imblearn.under_sampling import EditedNearestNeighbours
 
 
 def k_fold_cross_validation(docs, class_labels, type_of_classifier='knn', n_splits=2, k_neighbors=3):
@@ -17,7 +21,12 @@ def k_fold_cross_validation(docs, class_labels, type_of_classifier='knn', n_spli
     k_fold = KFold(n_splits=n_splits, random_state=seed, shuffle=enable_shuffle)
 
     m_accuracy = 0.0
+    m_f1_score = 0.0
     iteration = 0
+
+    # # ros = RandomOverSampler(random_state=1)
+    # ros = EditedNearestNeighbours(random_state=1)
+
     for train_index, test_index in k_fold.split(docs, class_labels):
         iteration += 1
 
@@ -39,15 +48,21 @@ def k_fold_cross_validation(docs, class_labels, type_of_classifier='knn', n_spli
         for i in test_index:
             test_labels.append(class_labels[i])
 
+        # random sampling
+        # tf_idf_train_ros, train_labels_ros = ros.fit_sample(tf_idf_train, train_labels)
         predict_labels = classifier.run(tf_idf_train, train_labels, tf_idf_test, type_of_classifier, k_neighbors=k_neighbors)
+
+
         accuracy = calculate_accuracy(test_labels, predict_labels)
         m_accuracy += accuracy
+
+        m_f1_score += f1_score(test_labels, predict_labels, average='weighted')
 
         print 'iteration:', iteration
         print '\taccuracy:', accuracy
         print '\tf1-score: ', f1_score(test_labels, predict_labels, average='weighted')
 
-    return m_accuracy / n_splits
+    return m_accuracy / n_splits, m_f1_score / n_splits
 
 
 def get_docs_and_class_labels(file_name, is_train=True):
@@ -128,7 +143,7 @@ if __name__ == '__main__':
     test_file_name = '../data/test.dat'
 
     train_docs, train_labels = get_docs_and_class_labels(train_file_name)
-    test_docs = get_docs_and_class_labels(test_file_name, is_train=False)
+    test_docs, test_labels = get_docs_and_class_labels(test_file_name, is_train=False)
 
     print 'train:', len(train_docs)
     print 'test:', len(test_docs)
@@ -144,7 +159,7 @@ if __name__ == '__main__':
 
     if type == 'train':
         print('training......')
-        accuracy = k_fold_cross_validation(
+        accuracy, f1_score = k_fold_cross_validation(
             train_docs,
             train_labels,
             type_of_classifier=type_of_classifier,
@@ -152,6 +167,7 @@ if __name__ == '__main__':
             k_neighbors=k_neighbors
         )
         print 'average accuracy = ', accuracy
+        print 'average f1_score = ', f1_score
 
 
     if type == 'test':
@@ -159,7 +175,6 @@ if __name__ == '__main__':
         tf_idf_train, train_vocabulary = preprocess.get_tf_idf_training(train_docs)
         tf_idf_test = preprocess.get_tf_idf_testing(train_vocabulary, test_docs)
 
-        type_of_classifier = 'knn'
         predict_labels = classifier.run(
             tf_idf_train,
             train_labels,

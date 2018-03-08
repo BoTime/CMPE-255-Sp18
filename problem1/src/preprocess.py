@@ -4,6 +4,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.stem import SnowballStemmer
+from imblearn.over_sampling import RandomOverSampler
 
 max_features = None
 binary = False
@@ -23,13 +24,17 @@ vectorizer = TfidfVectorizer(
     stop_words='english',
     analyzer='word',
     smooth_idf=False,
-    tokenizer=LemmaAndStemTokenizer()
+    ngram_range=(1, 2),
+    # max_df=3000,
+    # min_df=100
+    # tokenizer=LemmaAndStemTokenizer()
 )
 
 
 def get_tf_idf_training(training_set, vocabulary=None):
 
     tfidf = vectorizer.fit_transform(training_set)
+    ros = RandomOverSampler()
 
     return tfidf, vectorizer.vocabulary_
 
@@ -41,8 +46,11 @@ def get_tf_idf_testing(train_vocabulary, testing_set, vocabulary=None):
         stop_words='english',
         analyzer='word',
         smooth_idf=False,
+        # max_df=3000,
+        # min_df=100,
+        ngram_range=(1, 2),
         vocabulary=train_vocabulary,
-        tokenizer=LemmaAndStemTokenizer()
+        # tokenizer=LemmaAndStemTokenizer()
     )
 
     vectorizer.vocabulary_ = train_vocabulary
