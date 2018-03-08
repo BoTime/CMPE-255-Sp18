@@ -68,6 +68,7 @@ def get_docs_and_class_labels(file_name, is_train=True):
         ]
 
     if is_train is False:
+        print 'corpus: ', len(corpus)
         return corpus, []
 
     docs = []
@@ -93,13 +94,13 @@ def calculate_accuracy(actual_labels, predict_labels):
 
 
 def build_vocabulary():
-    train_file = '../train.dat'
-    test_file = '../test.dat'
+    train_file = '../data/train.dat'
+    test_file = '../data/test.dat'
 
     voc = set()
 
     train_docs, train_labels = get_docs_and_class_labels(train_file)
-    test_docs, test_labels = get_docs_and_class_labels(test_file, is_train=False)
+    test_docs, _ = get_docs_and_class_labels(test_file, is_train=False)
 
     for doc in train_docs:
         for word in doc:
@@ -123,17 +124,21 @@ if __name__ == '__main__':
 
     print(sys.argv)
 
-    train_file_name = '../train.dat'
-    test_file_name = '../test.dat'
+    train_file_name = '../data/train.dat'
+    test_file_name = '../data/test.dat'
 
     train_docs, train_labels = get_docs_and_class_labels(train_file_name)
-    test_docs, _ = get_docs_and_class_labels(test_file_name, is_train=False)
+    test_docs = get_docs_and_class_labels(test_file_name, is_train=False)
+
+    print 'train:', len(train_docs)
+    print 'test:', len(test_docs)
 
     k_neighbors = 31
     type = 'train'
     type_of_classifier = 'knn'
 
     if len(sys.argv) >= 2:
+        type = sys.argv[1]
         type_of_classifier = sys.argv[2]
         k_neighbors = int(sys.argv[3])
 
@@ -148,10 +153,11 @@ if __name__ == '__main__':
         )
         print 'average accuracy = ', accuracy
 
+
     if type == 'test':
         print('testing......')
-        tf_idf_train, X_train_counts, train_vocabulary = preprocess.get_tf_idf_training(train_docs)
-        tf_idf_test = preprocess.get_tf_idf_testing(X_train_counts, train_vocabulary, test_docs)
+        tf_idf_train, train_vocabulary = preprocess.get_tf_idf_training(train_docs)
+        tf_idf_test = preprocess.get_tf_idf_testing(train_vocabulary, test_docs)
 
         type_of_classifier = 'knn'
         predict_labels = classifier.run(
@@ -163,7 +169,7 @@ if __name__ == '__main__':
         )
         print len(predict_labels)
 
-        output_file_name = 'format.dat'
+        output_file_name = '../data/format.dat'
         with open(output_file_name, 'w') as raw_text:
             for label in predict_labels:
                 raw_text.write(label + '\n')

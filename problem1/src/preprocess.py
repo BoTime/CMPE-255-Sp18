@@ -15,16 +15,16 @@ class LemmaAndStemTokenizer(object):
         self.stemmer = SnowballStemmer("english")
 
     def __call__(self, doc):
-        # return [self.stemmer.stem(t1) for t1 in [self.lemmatizer.lemmatize(t2) for t2 in word_tokenize(doc)]]
-        return [self.stemmer.stem(t) for t in word_tokenize(doc)]
+        return [self.lemmatizer.lemmatize(t2) for t2 in word_tokenize(doc)]
+        # return [self.stemmer.stem(t) for t in word_tokenize(doc)]
 
 
 vectorizer = TfidfVectorizer(
     stop_words='english',
     analyzer='word',
+    smooth_idf=False,
     tokenizer=LemmaAndStemTokenizer()
 )
-# vectorizer = CountVectorizer(max_features=max_features, binary=binary)
 
 
 def get_tf_idf_training(training_set, vocabulary=None):
@@ -40,6 +40,7 @@ def get_tf_idf_testing(train_vocabulary, testing_set, vocabulary=None):
     vectorizer = TfidfVectorizer(
         stop_words='english',
         analyzer='word',
+        smooth_idf=False,
         vocabulary=train_vocabulary,
         tokenizer=LemmaAndStemTokenizer()
     )
@@ -49,3 +50,28 @@ def get_tf_idf_testing(train_vocabulary, testing_set, vocabulary=None):
     tfidf = vectorizer.fit_transform(testing_set)
 
     return tfidf
+
+
+# vectorizer = CountVectorizer(max_features=max_features, binary=binary)
+# def get_tf_idf_training(training_set, vocabulary=None):
+#
+#     tfidf = vectorizer.fit_transform(training_set)
+#
+#     return tfidf, vectorizer.vocabulary_
+#
+#
+# def get_tf_idf_testing(train_vocabulary, testing_set, vocabulary=None):
+#     # tokenize
+#
+#     vectorizer = TfidfVectorizer(
+#         stop_words='english',
+#         analyzer='word',
+#         vocabulary=train_vocabulary,
+#         # tokenizer=LemmaAndStemTokenizer()
+#     )
+#
+#     vectorizer.vocabulary_ = train_vocabulary
+#
+#     tfidf = vectorizer.fit_transform(testing_set)
+#
+#     return tfidf
